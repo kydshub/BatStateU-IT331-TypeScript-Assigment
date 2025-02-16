@@ -1,41 +1,60 @@
-function addTask() {
-    let taskInput = document.getElementById("task");
-    let taskText = taskInput.value;
-    if (taskText === "") {
-        alert("Please enter a task");
-        return;
+// script.ts
+var Task = /** @class */ (function () {
+    function Task(text) {
+        this.text = text;
     }
-
-    let taskList = document.getElementById("taskList");
-    let newTask = document.createElement("div");
-    newTask.textContent = taskText;
-
-    taskList.appendChild(newTask);
-    taskInput.value = ""; // Clear the input field
-
-    saveTasks(); // Save tasks to local storage
-}
-
-function saveTasks() {
-    let taskList = document.getElementById("taskList");
-    let tasks = [];
-    for (let i = 0; i < taskList.children.length; i++) {
-        tasks.push(taskList.children[i].textContent);
+    return Task;
+}());
+var TaskManager = /** @class */ (function () {
+    function TaskManager() {
+        this.taskList = document.getElementById("taskList");
+        this.taskInput = document.getElementById("task");
+        this.loadTasks();
     }
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-}
-
-function loadTasks() {
-    let taskList = document.getElementById("taskList");
-    let tasks = JSON.parse(localStorage.getItem("tasks"));
-    if (tasks) {
-        for (let i = 0; i < tasks.length; i++) {
-            let newTask = document.createElement("div");
-            newTask.textContent = tasks[i];
-            taskList.appendChild(newTask);
+    TaskManager.prototype.addTask = function () {
+        var taskText = this.taskInput.value;
+        if (taskText === "") {
+            alert("Please enter a task");
+            return;
         }
-    }
-}
-
-// Load tasks when the page loads
-window.onload = loadTasks;
+        var newTask = new Task(taskText);
+        this.renderTask(newTask);
+        this.taskInput.value = ""; // Clear the input field
+        this.saveTasks(); // Save tasks to local storage
+    };
+    TaskManager.prototype.renderTask = function (task) {
+        var taskElement = document.createElement("div");
+        taskElement.textContent = task.text;
+        this.taskList.appendChild(taskElement);
+    };
+    TaskManager.prototype.saveTasks = function () {
+        var tasks = [];
+        for (var i = 0; i < this.taskList.children.length; i++) {
+            tasks.push({ text: this.taskList.children[i].textContent });
+        }
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+    };
+    TaskManager.prototype.loadTasks = function () {
+        var _this = this;
+        var tasks = JSON.parse(localStorage.getItem("tasks") || "[]");
+        tasks.forEach(function (task) { return _this.renderTask(new Task(task.text)); });
+    };
+    TaskManager.prototype.filterTasks = function () {
+        var filterInput = document.getElementById("filterTask").value.toLowerCase();
+        var tasks = this.taskList.children;
+        for (var i = 0; i < tasks.length; i++) {
+            var taskText = tasks[i].textContent.toLowerCase();
+            if (taskText.includes(filterInput)) {
+                tasks[i].style.display = "";
+            }
+            else {
+                tasks[i].style.display = "none";
+            }
+        }
+    };
+    return TaskManager;
+}());
+// Create a global instance of TaskManager
+var taskManager = new TaskManager();
+// Ensure the taskManager is available on window load
+window.onload = function () { return taskManager; };
